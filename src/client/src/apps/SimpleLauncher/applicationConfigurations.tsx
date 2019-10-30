@@ -1,6 +1,5 @@
 import {
   excelIcon,
-  greenKeyIcon,
   limitCheckerIcon,
   reactiveAnalyticsIcon,
   reactiveTraderIcon,
@@ -133,31 +132,6 @@ const baseAppConfigs: ApplicationConfig[] = [
       windowOptions: {
         ...defaultWindowOptions,
         icon: `${ORIGIN}/static/media/limit-checker-icon.ico`,
-      },
-    },
-  },
-  {
-    name: 'GreenKey',
-    url: `${ORIGIN}/order-ticket`,
-    icon: greenKeyIcon,
-    provider: {
-      platformName: 'openfin',
-      applicationType: 'application',
-      windowOptions: {
-        ...defaultWindowOptions,
-        defaultWidth: 672,
-        defaultHeight: 384,
-        minWidth: 672,
-        minHeight: 384,
-        resizable: false,
-        maximizable: false,
-        contextMenu: true,
-        alwaysOnTop: false,
-        icon: `${ORIGIN}/static/media/ic-mic_1.ico`,
-        cornerRounding: {
-          height: 10,
-          width: 8,
-        },
       },
     },
   },
