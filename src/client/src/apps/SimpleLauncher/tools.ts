@@ -31,6 +31,11 @@ export async function open(
         return excelApp.open()
       case 'application':
       default:
+        const existingApp = await getExistingOpenFinApplication(config.name)
+        if (existingApp) {
+          existingApp.getWindow().bringToFront()
+          return existingApp
+        }
         const app = await createOpenFinApplication(config)
         await new Promise((resolve, reject) => app.run(resolve, reject))
         return app
@@ -38,7 +43,17 @@ export async function open(
   }
 }
 
-function createOpenFinApplication({
+async function getExistingOpenFinApplication(
+  uuid: string,
+): Promise<fin.OpenFinApplication | undefined> {
+  const runningApps = await fin.System.getAllApplications()
+  const appIsRunning = runningApps.some(app => app.uuid === uuid)
+  if (appIsRunning) {
+    return fin.desktop.Application.wrap(uuid)
+  }
+}
+
+async function createOpenFinApplication({
   name,
   url,
   provider: { windowOptions },
