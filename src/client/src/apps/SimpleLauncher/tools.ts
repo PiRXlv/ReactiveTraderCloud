@@ -2,10 +2,11 @@
 import { ApplicationConfig } from './applicationConfigurations'
 import { createExcelApp } from 'rt-platforms'
 import { createOpenFinWindow, createOrBringToFrontOpenFinApplication } from '../utils'
+import { Application } from 'openfin/_v2/main'
 
 export async function open(
   config: ApplicationConfig,
-): Promise<Window | fin.OpenFinWindow | fin.OpenFinApplication | void> {
+): Promise<Window | fin.OpenFinWindow | Application | void> {
   const { provider, url, name } = config
   const { windowOptions } = provider
 
@@ -39,7 +40,7 @@ export async function open(
 }
 
 async function launchLimitChecker(config: ApplicationConfig) {
-  const app = fin.desktop.Application.wrap(config.name)
+  const app = fin.Application.wrap({ uuid: config.name })
   fin.desktop.System.launchExternalProcess({
     alias: 'LimitChecker',
     listener(result) {

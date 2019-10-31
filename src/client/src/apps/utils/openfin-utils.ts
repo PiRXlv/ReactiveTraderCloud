@@ -8,26 +8,24 @@ export interface ApplicationConfig {
 
 export async function getExistingOpenFinApplication(
   uuid: string,
-): Promise<fin.OpenFinApplication | undefined> {
+): Promise<Application | undefined> {
   const allApps = await fin.System.getAllApplications()
   const targetApp = allApps.some(app => app.uuid === uuid)
   if (targetApp) {
-    return fin.Application.wrap(uuid)
+    return fin.Application.wrap({ uuid })
   }
 }
 
-async function restoreExistingApp(existingApp: fin.OpenFinApplication): Promise<fin.Application> {
-  return new Promise((resolve, reject) => {
-    existingApp.isRunning(isRunning => {
-      if (!isRunning) {
-        existingApp.run(() => resolve(existingApp), reject)
-        return
-      }
-      const window = existingApp.getWindow()
-      window.restore()
-      window.bringToFront()
-    })
-  })
+async function restoreExistingApp(existingApp: Application): Promise<void> {
+  const isRunning = await existingApp.isRunning()
+  if (!isRunning) {
+    await existingApp.run()
+    return
+  }
+
+  const window = await existingApp.getWindow()
+  await window.restore()
+  await window.bringToFront()
 }
 
 export async function createOrBringToFrontOpenFinApplication({
@@ -37,7 +35,8 @@ export async function createOrBringToFrontOpenFinApplication({
 }: ApplicationConfig): Promise<Application> {
   const existingApp = await getExistingOpenFinApplication(name)
   if (existingApp) {
-    return restoreExistingApp(existingApp)
+    await restoreExistingApp(existingApp)
+    return existingApp
   }
   return createAndRunOpenFinApplication({ name, url, windowOptions })
 }
@@ -46,20 +45,16 @@ export async function createAndRunOpenFinApplication({
   name,
   url,
   windowOptions,
-}: ApplicationConfig): Promise<fin.OpenFinApplication> {
-  return new Promise((resolve, reject) => {
-    const app: fin.OpenFinApplication = new fin.desktop.Application(
-      {
-        name,
-        url,
-        uuid: name,
-        nonPersistent: true,
-        mainWindowOptions: windowOptions,
-      },
-      () => app.run(() => resolve(app), reject),
-      e => reject(e),
-    )
-  })
+}: ApplicationConfig): Promise<Application> {
+  const appOptions: fin.ApplicationOption = {
+    name,
+    url,
+    uuid: name,
+    nonPersistent: true,
+    mainWindowOptions: windowOptions,
+  }
+
+  return fin.Application.start(appOptions)
 }
 
 export function createOpenFinWindow({
