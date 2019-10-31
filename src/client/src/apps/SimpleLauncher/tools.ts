@@ -1,11 +1,13 @@
 /* eslint-disable no-undef */
 import { ApplicationConfig } from './applicationConfigurations'
 import { createExcelApp } from 'rt-platforms'
+import { createOpenFinWindow, createOrBringToFrontOpenFinApplication } from '../utils'
 
 export async function open(
   config: ApplicationConfig,
 ): Promise<Window | fin.OpenFinWindow | fin.OpenFinApplication | void> {
-  const { provider } = config
+  const { provider, url, name } = config
+  const { windowOptions } = provider
 
   // Not under openfin -> open as url on browser
   if (typeof fin === 'undefined') {
@@ -23,7 +25,7 @@ export async function open(
   if (provider.platformName === 'openfin') {
     switch (provider.applicationType) {
       case 'window':
-        return createOpenFinWindow(config)
+        return createOpenFinWindow({ name, url, windowOptions })
       case 'download':
         return launchLimitChecker(config)
       case 'excel':
@@ -31,64 +33,9 @@ export async function open(
         return excelApp.open()
       case 'application':
       default:
-        const existingApp = await getExistingOpenFinApplication(config.name)
-        if (existingApp) {
-          existingApp.getWindow().bringToFront()
-          return existingApp
-        }
-        const app = await createOpenFinApplication(config)
-        await new Promise((resolve, reject) => app.run(resolve, reject))
-        return app
+        return createOrBringToFrontOpenFinApplication({ name, url, windowOptions })
     }
   }
-}
-
-async function getExistingOpenFinApplication(
-  uuid: string,
-): Promise<fin.OpenFinApplication | undefined> {
-  const runningApps = await fin.System.getAllApplications()
-  const appIsRunning = runningApps.some(app => app.uuid === uuid)
-  if (appIsRunning) {
-    return fin.desktop.Application.wrap(uuid)
-  }
-}
-
-async function createOpenFinApplication({
-  name,
-  url,
-  provider: { windowOptions },
-}: ApplicationConfig): Promise<fin.OpenFinApplication> {
-  return new Promise((resolve, reject) => {
-    const app: fin.OpenFinApplication = new fin.desktop.Application(
-      {
-        name,
-        url,
-        uuid: name,
-        nonPersistent: true,
-        mainWindowOptions: windowOptions,
-      },
-      () => resolve(app),
-      e => reject(e),
-    )
-  })
-}
-
-function createOpenFinWindow({
-  name,
-  url,
-  provider: { windowOptions },
-}: ApplicationConfig): Promise<fin.OpenFinWindow> {
-  return new Promise((resolve, reject) => {
-    const window: fin.OpenFinWindow = new fin.desktop.Window(
-      {
-        url,
-        name,
-        ...windowOptions,
-      },
-      () => resolve(window),
-      reject,
-    )
-  })
 }
 
 async function launchLimitChecker(config: ApplicationConfig) {

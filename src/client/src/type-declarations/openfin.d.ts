@@ -12,8 +12,8 @@ declare interface OpenFinWindowOptions extends fin.WindowOption {
   }
 }
 
+// TODO: start
 declare namespace fin {
-  
   type ExcelWorksheet = import('./openfin-excel').ExcelWorksheet
   type WorksheetChangedEventArgs = import('./openfin-excel').WorksheetChangedEventArgs
   type WorksheetSelectionChangedEventArgs = import('./openfin-excel').WorksheetSelectionChangedEventArgs
