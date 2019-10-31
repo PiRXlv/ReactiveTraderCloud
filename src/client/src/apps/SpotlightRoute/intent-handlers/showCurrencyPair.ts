@@ -1,7 +1,7 @@
 import { InteropTopics, PlatformAdapter } from 'rt-platforms'
 import { defaultConfig, windowOrigin } from './defaultWindowConfig'
 
-let currencyPairWindow: Window = null
+let currencyPairWindow: Window | undefined
 
 export function showCurrencyPair(currencyPair: string, platform: PlatformAdapter) {
   currencyPair = currencyPair.toUpperCase()
@@ -15,7 +15,7 @@ export function showCurrencyPair(currencyPair: string, platform: PlatformAdapter
           height: 180,
           url: `${windowOrigin}/spot/${currencyPair}?tileView=Normal`,
         },
-        () => (currencyPairWindow = null),
+        () => (currencyPairWindow = undefined),
       )
       .then(w => (currencyPairWindow = w))
   } else if (platform.hasFeature('interop')) {

@@ -1,8 +1,10 @@
 import { WindowConfig, WindowPosition, PlatformName } from './types'
 import { ExternalWindow } from './externalWindowDefault'
-import { BasePlatformAdapter } from './platformAdapter'
+import { BasePlatformAdapter, PlatformWindow } from './platformAdapter'
 
+// export type AbstractPlatformAdapter = AbstractPlatformAdapter
 export type PlatformAdapter = BasePlatformAdapter
+export type PlatformWindow = PlatformWindow
 export type WindowConfig = WindowConfig
 export type WindowPosition = WindowPosition
 export type PlatformName = PlatformName

@@ -1,18 +1,27 @@
-import { InteropTopics, PlatformAdapter } from 'rt-platforms'
+import { InteropTopics, PlatformAdapter, PlatformWindow } from 'rt-platforms'
 import { stringify } from 'query-string'
 import { defaultConfig, windowOrigin } from './defaultWindowConfig'
 import { BlotterFilters, validateFilters } from '../../MainRoute/widgets/blotter'
 
-let blotterWindow: Window = null
+let blotterWindow: PlatformWindow | undefined
 
-export function showBlotter(filters: BlotterFilters, platform: PlatformAdapter) {
-  if (blotterWindow && !blotterWindow.closed) {
-    if (platform.hasFeature('interop')) {
-      platform.interop.publish(InteropTopics.FilterBlotter, filters)
-    } else {
-      console.log(`Interop publishing is not available, skipping updating blotter filters`)
-    }
-    blotterWindow.focus()
+function updatedExistingBlotter(
+  blotterWindow: PlatformWindow,
+  filters: BlotterFilters,
+  platform: PlatformAdapter,
+) {
+  if (platform.hasFeature('interop')) {
+    platform.interop.publish(InteropTopics.FilterBlotter, filters)
+  } else {
+    console.log(`Interop publishing is not available, skipping updating blotter filters`)
+  }
+  blotterWindow.restore()
+  blotterWindow.bringToFront()
+}
+
+export async function showBlotter(filters: BlotterFilters, platform: PlatformAdapter) {
+  if (blotterWindow) {
+    updatedExistingBlotter(blotterWindow, filters, platform)
     return
   }
 
@@ -20,14 +29,12 @@ export function showBlotter(filters: BlotterFilters, platform: PlatformAdapter) 
   const queryString = stringify(validateFilters(filters))
   const url = queryString ? `${baseUrl}/?${queryString}` : baseUrl
 
-  platform.window
-    .open(
-      {
-        ...defaultConfig,
-        width: 1100,
-        url,
-      },
-      () => (blotterWindow = null),
-    )
-    .then(w => (blotterWindow = w))
+  blotterWindow = await platform.windowApi.open(
+    {
+      ...defaultConfig,
+      width: 1100,
+      url,
+    },
+    () => (blotterWindow = undefined),
+  )
 }
