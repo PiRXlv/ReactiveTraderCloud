@@ -24,7 +24,7 @@ import { SpotlightApplication } from './fdc3/fdc3'
 import { BlotterFilters, DEALT_CURRENCY, SYMBOL } from '../MainRoute/widgets/blotter'
 
 const Container = styled.div`
-  color: ${({ theme }) => theme.core.textColor};
+  color: ${({theme}) => theme.core.textColor};
   display: flex;
   flex-flow: column nowrap;
   padding: 1rem;
@@ -57,9 +57,9 @@ const Suggestion = styled.div`
   padding: 10px 5px;
   line-height: 1rem;
   cursor: pointer;
-  background-color: ${({ theme }) => theme.core.lightBackground};
+  background-color: ${({theme}) => theme.core.lightBackground};
   &:hover {
-    background-color: ${({ theme }) => theme.core.backgroundHoverColor};
+    background-color: ${({theme}) => theme.core.backgroundHoverColor};
   }
 `
 
@@ -71,7 +71,7 @@ const INPUT_ID = 'spotlight'
 
 function getDirectoryAppsComponent(
   directoryApps: SpotlightApplication[],
-  { onClick }: { onClick: (appId: string) => {} },
+  {onClick}: { onClick: (appId: string) => void },
 ) {
   return (
     <>
@@ -96,12 +96,12 @@ function getInlineSuggestionsComponent(response: DetectIntentResponse, platform:
     <>
       {isSpotQuoteIntent(response) && currencyPair ? (
         <Suggestion onClick={() => handleIntent(response, platform)}>
-          <InlineQuote currencyPair={currencyPair} />
+          <InlineQuote currencyPair={currencyPair}/>
         </Suggestion>
       ) : null}
       {isTradeIntent(response) ? (
         <Suggestion onClick={() => handleIntent(response, platform)}>
-          <InlineBlotter filters={blotterFilter} />
+          <InlineBlotter filters={blotterFilter}/>
         </Suggestion>
       ) : null}
     </>
@@ -114,16 +114,18 @@ function getNonDirectoryAppsComponent(response: DetectIntentResponse, platform: 
 }
 
 export const Spotlight: FC = () => {
-  const [{ request, response, contacting }, dispatch] = useReducer(reducer, initialState)
-  const [dirApps, setDirApps] = useState([])
+  const [{request, response, contacting}, dispatch] = useReducer(reducer, initialState)
+  const [dirApps, setDirApps] = useState<SpotlightApplication[]>([])
   const serviceStub = useServiceStub()
   const platform = usePlatform()
   const fdc3 = useFdc3()
 
   useEffect(() => {
+    if (!fdc3 || !response) {
+      return
+    }
     const getApps = async () => {
       const directoryApps = await fdc3.getMatchingApps(response)
-
       setDirApps(directoryApps)
     }
 
@@ -132,6 +134,10 @@ export const Spotlight: FC = () => {
 
   useEffect(() => {
     if (!contacting) {
+      return
+    }
+    if (!serviceStub) {
+      console.error(`Error creating subscription - serviceStub was not defined`)
       return
     }
     const subscription = serviceStub
@@ -147,11 +153,11 @@ export const Spotlight: FC = () => {
       )
       .subscribe(
         response => {
-          dispatch({ type: 'RECEIVE_RESPONSE', response: response[0] })
+          dispatch({type: 'RECEIVE_RESPONSE', response: response[0]})
         },
         (err: any) => {
           console.error(err)
-          dispatch({ type: 'RECEIVE_RESPONSE', response: null })
+          dispatch({type: 'RECEIVE_RESPONSE'})
         },
       )
 
@@ -164,22 +170,22 @@ export const Spotlight: FC = () => {
   }, [contacting, serviceStub])
 
   const handleChange: ChangeEventHandler<HTMLInputElement> = e => {
-    dispatch({ type: 'SET_REQUEST', request: e.target.value })
+    dispatch({type: 'SET_REQUEST', request: e.target.value})
   }
 
   const handleOnKeyDown: KeyboardEventHandler<HTMLInputElement> = e => {
     switch (e.key) {
       case 'Enter':
         const value = e.currentTarget.value
-        dispatch({ type: 'SEND_REQUEST', request: value })
+        dispatch({type: 'SEND_REQUEST', request: value})
         break
       case 'ArrowDown':
         e.preventDefault()
-        dispatch({ type: 'HISTORY_NEXT' })
+        dispatch({type: 'HISTORY_NEXT'})
         break
       case 'ArrowUp':
         e.preventDefault()
-        dispatch({ type: 'HISTORY_PREVIOUS' })
+        dispatch({type: 'HISTORY_PREVIOUS'})
         break
     }
   }
@@ -190,12 +196,20 @@ export const Spotlight: FC = () => {
 
   const loader = (
     <>
-      <AdaptiveLoader size={14} speed={0.8} seperation={1.5} type="secondary" />
+      <AdaptiveLoader size={14} speed={0.8} seperation={1.5} type="secondary"/>
       <Contacting>Contacting…</Contacting>
     </>
   )
 
-  const directoryAppSuggestions = getDirectoryAppsComponent(dirApps, { onClick: fdc3.open })
+  const directoryAppSuggestions = getDirectoryAppsComponent(dirApps, {
+    onClick: (appId) => {
+      if (!fdc3) {
+        console.error(`Error using FDC3 - fdc3 instace is undefined`)
+        return
+      }
+      return fdc3.open(appId)
+    }
+  })
   const nonDirectoryAppSuggestions = response && getNonDirectoryAppsComponent(response, platform)
   const inlineSuggestions = response && getInlineSuggestionsComponent(response, platform)
 

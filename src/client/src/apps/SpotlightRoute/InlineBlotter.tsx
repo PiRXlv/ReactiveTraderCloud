@@ -29,21 +29,21 @@ const Table = styled.table`
 
   tbody {
     tr:nth-child(odd) {
-      background-color: ${({ theme }) => theme.core.darkBackground};
+      background-color: ${({theme}) => theme.core.darkBackground};
     }
 
     tr:nth-child(even) {
-      background-color: ${({ theme }) => theme.core.alternateBackground};
+      background-color: ${({theme}) => theme.core.alternateBackground};
     }
   }
 `
 
-interface IProps {
+interface BlotterProps {
   readonly filters?: BlotterFilters
 }
 
-export const InlineBlotter: FC<IProps> = ({ filters }) => {
-  const [trades, setTrades] = useState([])
+export const InlineBlotter: FC<BlotterProps> = ({filters}) => {
+  const [trades, setTrades] = useState<Trade[]>([])
   const [tradeCount, setTradeCount] = useState(0)
   const serviceStub = useServiceStub()
   const blotterService = useBlotterService(serviceStub)
@@ -71,7 +71,7 @@ export const InlineBlotter: FC<IProps> = ({ filters }) => {
       .subscribe(result => {
         setTradeCount(result.length)
         setTrades(
-          result.slice(0, typeof filters.count !== 'undefined' ? filters.count : MAX_TRADES),
+          result.slice(0, filters && typeof filters.count !== 'undefined' ? filters.count : MAX_TRADES),
         )
       }, console.error)
 
@@ -89,24 +89,24 @@ export const InlineBlotter: FC<IProps> = ({ filters }) => {
       </span>
       <Table>
         <thead>
-          <tr>
-            <th>Trade ID</th>
-            <th>Symbol</th>
-            <th>Notional</th>
-            <th>Trade Date</th>
-            <th>Status</th>
-          </tr>
+        <tr>
+          <th>Trade ID</th>
+          <th>Symbol</th>
+          <th>Notional</th>
+          <th>Trade Date</th>
+          <th>Status</th>
+        </tr>
         </thead>
         <tbody>
-          {trades.map(trade => (
-            <tr key={trade.tradeId}>
-              <td>{trade.tradeId}</td>
-              <td>{trade.symbol}</td>
-              <td>{numeral(trade.notional).format()}</td>
-              <td>{DateTime.fromJSDate(trade.tradeDate).toFormat('yyyy LLL dd')}</td>
-              <td>{trade.status}</td>
-            </tr>
-          ))}
+        {trades.map(trade => (
+          <tr key={trade.tradeId}>
+            <td>{trade.tradeId}</td>
+            <td>{trade.symbol}</td>
+            <td>{numeral(trade.notional).format()}</td>
+            <td>{DateTime.fromJSDate(trade.tradeDate).toFormat('yyyy LLL dd')}</td>
+            <td>{trade.status}</td>
+          </tr>
+        ))}
         </tbody>
       </Table>
     </>
