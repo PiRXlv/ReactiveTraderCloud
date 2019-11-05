@@ -4,8 +4,8 @@ import { createExcelApp } from 'rt-platforms'
 
 export async function open(
   config: ApplicationConfig,
-): Promise<Window | fin.OpenFinWindow | fin.OpenFinApplication | void> {
-  const { provider } = config
+): Promise<Window | fin.OpenFinWindow | fin.OpenFinApplication | void | null> {
+  const {provider} = config
 
   // Not under openfin -> open as url on browser
   if (typeof fin === 'undefined') {
@@ -13,14 +13,19 @@ export async function open(
   }
 
   // open as url through openfin
-  if (provider.platformName === 'browser') {
-    return new Promise((resolve, reject) =>
-      fin.desktop.System.openUrlWithBrowser(config.url, resolve, reject),
+  if (provider && provider.platformName === 'browser') {
+    return new Promise((resolve, reject) => {
+        if (typeof config.url !== 'string') {
+          console.error(`Error opening with browser - url should be a string`)
+          return
+        }
+        fin.desktop.System.openUrlWithBrowser(config.url, resolve, reject)
+      }
     )
   }
 
   // open new openfin application
-  if (provider.platformName === 'openfin') {
+  if (provider && provider.platformName === 'openfin') {
     switch (provider.applicationType) {
       case 'window':
         return createOpenFinWindow(config)
@@ -39,10 +44,10 @@ export async function open(
 }
 
 function createOpenFinApplication({
-  name,
-  url,
-  provider: { windowOptions },
-}: ApplicationConfig): Promise<fin.OpenFinApplication> {
+                                    name,
+                                    url,
+                                    provider,
+                                  }: ApplicationConfig): Promise<fin.OpenFinApplication> {
   return new Promise((resolve, reject) => {
     const app: fin.OpenFinApplication = new fin.desktop.Application(
       {
@@ -50,7 +55,7 @@ function createOpenFinApplication({
         url,
         uuid: name,
         nonPersistent: true,
-        mainWindowOptions: windowOptions,
+        mainWindowOptions: provider && provider.windowOptions,
       },
       () => resolve(app),
       e => reject(e),
@@ -59,16 +64,16 @@ function createOpenFinApplication({
 }
 
 function createOpenFinWindow({
-  name,
-  url,
-  provider: { windowOptions },
-}: ApplicationConfig): Promise<fin.OpenFinWindow> {
+                               name,
+                               url,
+                               provider,
+                             }: ApplicationConfig): Promise<fin.OpenFinWindow> {
   return new Promise((resolve, reject) => {
     const window: fin.OpenFinWindow = new fin.desktop.Window(
       {
         url,
         name,
-        ...windowOptions,
+        ...provider && provider.windowOptions,
       },
       () => resolve(window),
       reject,

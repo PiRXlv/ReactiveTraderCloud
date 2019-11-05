@@ -43,14 +43,14 @@ class NoopExcelAppImpl implements ExcelApp {
   }
 }
 
-export const createExcelApp = async (platformName: string) => {
+export const createExcelApp = async (platformName: string): Promise<ExcelApp> => {
   if (platformName === 'openfin') {
-    const { JSExcelAdapter, LegacyExcelAdapter } = await getOpenFinPlatform()
+    const {JSExcelAdapter, LegacyExcelAdapter} = await getOpenFinPlatform()
     return EXCEL_ADAPTER_NAME === 'legacy' ? new LegacyExcelAdapter() : new JSExcelAdapter()
   }
 
   if (platformName === 'glue') {
-    const { GlueExcelAdapter } = await getGlue42Platform()
+    const {GlueExcelAdapter} = await getGlue42Platform()
     return new GlueExcelAdapter()
   }
 
