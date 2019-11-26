@@ -4,10 +4,14 @@ using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using System.Text;
 using System.Threading.Tasks;
 using SystemEx;
 using Adaptive.ReactiveTrader.Messaging.Abstraction;
 using Adaptive.ReactiveTrader.Messaging.WAMP;
+using Newtonsoft.Json;
+using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
 using Serilog;
 using Serilog.Events;
 using WampSharp.V2;
@@ -16,6 +20,60 @@ using WampSharp.V2.MetaApi;
 
 namespace Adaptive.ReactiveTrader.Messaging
 {
+    internal class RabbitBroker : IBroker, IDisposable
+    {
+        private readonly IModel _channel;
+        private readonly string _realm;
+
+        public RabbitBroker(IModel channel, string realm)
+        {
+            _channel = channel;
+            _realm = realm;
+            channel.ExchangeDeclare(exchange: realm, type: ExchangeType.Fanout);
+        }
+        public Task<IAsyncDisposable> RegisterCall(string procName, Func<IRequestContext, IMessage, Task> onMessage)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<IAsyncDisposable> RegisterCallResponse<TResponse>(string procName, Func<IRequestContext, IMessage, Task<TResponse>> onMessage)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<IPrivateEndPoint<T>> GetPrivateEndPoint<T>(ITransientDestination replyTo)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<IEndPoint<T>> GetPublicEndPoint<T>(string topic)
+        {
+            var subject = SubscribeToTopic<T>(topic);
+            return Task.FromResult((IEndPoint<T>)new EndPoint<T>(subject));
+        }
+
+        public IObservable<T> SubscribeToTopic<T>(string topic)
+        {
+            _channel.QueueBind(queue: topic, exchange: _realm, routingKey: string.Empty);
+            var consumer = new EventingBasicConsumer(_channel);
+
+            return Observable.FromEventPattern<BasicDeliverEventArgs>(
+                    x => consumer.Received += x,
+                    x => consumer.Received -= x)
+                .Select(GetJsonPayload<T>);
+        }
+
+        private TResult GetJsonPayload<TResult>(EventPattern<BasicDeliverEventArgs> arg)
+        {
+            var body = Encoding.UTF8.GetString(arg.EventArgs.Body);
+            return JsonConvert.DeserializeObject<TResult>(body);
+        }
+
+        public void Dispose()
+        {
+        }
+    }
+
     internal class Broker : IBroker, IDisposable
     {
         private readonly Subject<Unit> _brokerTeardown;
