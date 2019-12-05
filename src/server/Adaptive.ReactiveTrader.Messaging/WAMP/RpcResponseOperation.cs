@@ -74,7 +74,8 @@ namespace Adaptive.ReactiveTrader.Messaging.WAMP
 
             try
             {
-                Task.Run(async () =>
+                Task.
+                    Run(async () =>
                 {
                     try
                     {
@@ -82,7 +83,7 @@ namespace Adaptive.ReactiveTrader.Messaging.WAMP
 
                         var message = new Message
                         {
-                            ReplyTo = new WampTransientDestination(x.ReplyTo),
+                            ReplyTo = x.ReplyTo,
                             Payload =
                                 Encoding.UTF8.GetBytes(x.Payload
                                     .ToString()) // TODO need to stop this from deserializing

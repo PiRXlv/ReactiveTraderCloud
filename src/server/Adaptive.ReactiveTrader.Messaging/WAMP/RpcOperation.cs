@@ -11,6 +11,7 @@ using WampSharp.V2.Rpc;
 
 namespace Adaptive.ReactiveTrader.Messaging.WAMP
 {
+    /*
     internal class RpcOperation : IWampRpcOperation
     {
         private readonly Func<IRequestContext, IMessage, Task> _serviceMethod;
@@ -120,4 +121,5 @@ namespace Adaptive.ReactiveTrader.Messaging.WAMP
             }
         }
     }
+    */
 }

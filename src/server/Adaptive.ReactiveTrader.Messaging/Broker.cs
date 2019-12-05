@@ -54,7 +54,7 @@ namespace Adaptive.ReactiveTrader.Messaging
 
                     var message = new Message
                     {
-                        ReplyTo = new WampTransientDestination(x.ReplyTo),
+                        ReplyTo = x.ReplyTo,
                         Payload = Encoding.UTF8.GetBytes(payload)
                     };
 
@@ -111,7 +111,7 @@ namespace Adaptive.ReactiveTrader.Messaging
                     
                     var message = new Message
                     {
-                        ReplyTo = new WampTransientDestination(x.ReplyTo),
+                        ReplyTo = x.ReplyTo,
                         Payload = Encoding.UTF8.GetBytes(payload)
                     };
 
@@ -141,10 +141,9 @@ namespace Adaptive.ReactiveTrader.Messaging
             return Disposable.Create(() => { _channel.BasicCancel(consumerTag); });
         }
 
-        public IPrivateEndPoint<T> GetPrivateEndPoint<T>(ITransientDestination replyTo)
+        public IPrivateEndPoint<T> GetPrivateEndPoint<T>(string replyTo)
         {
-            var topic = ((WampTransientDestination) replyTo).Topic;
-            return new RabbitPrivateEndpoint<T>(_channel, topic);
+            return new RabbitPrivateEndpoint<T>(_channel, replyTo);
         }
 
         public IEndPoint<T> GetPublicEndPoint<T>(string topic)
@@ -168,7 +167,7 @@ namespace Adaptive.ReactiveTrader.Messaging
             return observable;
         }
 
-        private TResult GetJsonPayload<TResult>(EventPattern<BasicDeliverEventArgs> arg)
+        private static TResult GetJsonPayload<TResult>(EventPattern<BasicDeliverEventArgs> arg)
         {
             var body = Encoding.UTF8.GetString(arg.EventArgs.Body);
             return JsonConvert.DeserializeObject<TResult>(body);

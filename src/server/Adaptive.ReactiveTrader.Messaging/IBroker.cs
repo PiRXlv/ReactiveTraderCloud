@@ -9,7 +9,7 @@ namespace Adaptive.ReactiveTrader.Messaging
         IDisposable RegisterCall(string procName, Func<IRequestContext, IMessage, Task> onMessage);
         IDisposable RegisterCallResponse<TResponse>(string procName, Func<IRequestContext, IMessage, Task<TResponse>> onMessage);
 
-        IPrivateEndPoint<T> GetPrivateEndPoint<T>(ITransientDestination replyTo);
+        IPrivateEndPoint<T> GetPrivateEndPoint<T>(string replyTo);
         IEndPoint<T> GetPublicEndPoint<T>(string topic);
 
         IObservable<T> SubscribeToTopic<T>(string topic);
