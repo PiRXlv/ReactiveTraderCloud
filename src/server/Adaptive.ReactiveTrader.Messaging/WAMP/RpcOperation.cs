@@ -1,14 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
-using Adaptive.ReactiveTrader.Messaging.Abstraction;
-using Serilog;
-using WampSharp.Core.Serialization;
-using WampSharp.V2.Core;
-using WampSharp.V2.Core.Contracts;
-using WampSharp.V2.Rpc;
-
 namespace Adaptive.ReactiveTrader.Messaging.WAMP
 {
     /*
