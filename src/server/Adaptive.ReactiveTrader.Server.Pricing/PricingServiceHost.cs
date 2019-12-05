@@ -34,7 +34,7 @@ namespace Adaptive.ReactiveTrader.Server.Pricing
             priceTrunk.Start().Wait();
         }
 
-        public async Task GetPriceUpdates(IRequestContext context, IMessage message)
+        public Task GetPriceUpdates(IRequestContext context, IMessage message)
         {
             Log.Debug("{host} Received GetPriceUpdates from [{user}] for replyTo {replyTo}",
                             this,
@@ -45,13 +45,14 @@ namespace Adaptive.ReactiveTrader.Server.Pricing
 
             var replyTo = message.ReplyTo;
 
-            var endpoint = await _broker.GetPrivateEndPoint<SpotPriceDto>(replyTo);
+            var endpoint = _broker.GetPrivateEndPoint<SpotPriceDto>(replyTo);
 
             var disposable = _service.GetPriceUpdates(context, spotStreamRequest)
                                      .TakeUntil(endpoint.TerminationSignal)
                                      .Subscribe(endpoint);
 
             _cleanup.Add(disposable);
+            return Task.CompletedTask;
         }
 
         public override void Dispose()

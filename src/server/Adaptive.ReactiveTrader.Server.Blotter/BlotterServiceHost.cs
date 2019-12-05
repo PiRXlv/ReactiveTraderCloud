@@ -31,7 +31,7 @@ namespace Adaptive.ReactiveTrader.Server.Blotter
             Log.Debug("Received GetTradesStream from {username}", context.UserSession.Username ?? "<UNKNOWN USER>");
             var replyTo = message.ReplyTo;
 
-            var endPoint = await _broker.GetPrivateEndPoint<TradesDto>(replyTo);
+            var endPoint = _broker.GetPrivateEndPoint<TradesDto>(replyTo);
 
             _subscription = _service.GetTradesStream()
                 .Select(x =>

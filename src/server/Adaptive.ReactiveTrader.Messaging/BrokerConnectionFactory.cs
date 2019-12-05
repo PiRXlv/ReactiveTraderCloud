@@ -40,11 +40,11 @@ namespace Adaptive.ReactiveTrader.Messaging
       _sessionDispose.Add(_connection);
       _sessionDispose.Add(_channel);
 
-      _subject.OnNext(Connected.Yes(new RabbitBroker(_channel)));
+      _subject.OnNext(Connected.Yes(new Broker(_channel)));
 
       _connection.RecoverySucceeded += (obj, evt) => {
         Log.Debug("Connection recovered.");
-        _subject.OnNext(Connected.Yes(new RabbitBroker(_channel))); 
+        _subject.OnNext(Connected.Yes(new Broker(_channel))); 
       };
 
       _connection.ConnectionRecoveryError += (obj, evt) =>

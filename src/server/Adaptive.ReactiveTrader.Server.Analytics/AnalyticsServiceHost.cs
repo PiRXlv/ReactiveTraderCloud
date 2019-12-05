@@ -53,7 +53,7 @@ namespace Adaptive.ReactiveTrader.Server.Analytics
         {
             Log.Debug("Received GetAnalyticsStream from {username}", context.UserSession.Username);
 
-            var endPoint = await _broker.GetPrivateEndPoint<PositionUpdatesDto>(message.ReplyTo);
+            var endPoint = _broker.GetPrivateEndPoint<PositionUpdatesDto>(message.ReplyTo);
 
             _subscriptions.Add(_service.GetAnalyticsStream()
                                        .TakeUntil(endPoint.TerminationSignal)

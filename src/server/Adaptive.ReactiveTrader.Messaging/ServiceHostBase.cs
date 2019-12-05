@@ -36,7 +36,7 @@ namespace Adaptive.ReactiveTrader.Messaging
             _registedCalls.Add(Disposable.Create(() =>
             {
                 Log.Information("unregistering from {procName}", procName);
-                call.Result.DisposeAsync().Wait(TimeSpan.FromSeconds(5));
+                call.Dispose();
                 Log.Information("unregistered from {procName}", procName);
             }));
             Log.Information("procedure {procName}() registered", procName);
@@ -49,7 +49,7 @@ namespace Adaptive.ReactiveTrader.Messaging
             _registedCalls.Add(Disposable.Create(() =>
             {
                 Log.Information("unregistering from {procName}", procName);
-                call.Result.DisposeAsync().Wait(TimeSpan.FromSeconds(5));
+                call.Dispose();
                 Log.Information("unregistered from {procName}", procName);
             }));
             Log.Information("procedure {procName}() registered", procName);
