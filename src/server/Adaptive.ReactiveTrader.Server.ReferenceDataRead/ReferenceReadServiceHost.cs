@@ -30,7 +30,7 @@ namespace Adaptive.ReactiveTrader.Server.ReferenceDataRead
         private Task GetCurrencyPairUpdatesStream(IRequestContext context, IMessage message)
         {
             Log.Debug("Received GetCurrencyPairUpdatesStream from {}",
-                            context.UserSession.Username ?? "<UNKNOWN USER>");
+                            context.Username ?? "<UNKNOWN USER>");
 
             var payload = JsonConvert.DeserializeObject<NothingDto>(Encoding.UTF8.GetString(message.Payload));
             var replyTo = message.ReplyTo;

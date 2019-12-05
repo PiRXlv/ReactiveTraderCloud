@@ -38,7 +38,7 @@ namespace Adaptive.ReactiveTrader.Messaging
             var consumer = new EventingBasicConsumer(_channel);
             var consumerTag = _channel.BasicConsume(queue: procName,
                 autoAck: false, consumer: consumer);
-            consumer.Received += (sender, args) =>
+            consumer.Received += async (sender, args) =>
             {
                 var body = args.Body;
                 var requestProps = args.BasicProperties;
@@ -58,22 +58,15 @@ namespace Adaptive.ReactiveTrader.Messaging
                         Payload = Encoding.UTF8.GetBytes(payload)
                     };
 
-                    var userSession = new UserSession
-                    {
-                        Username = x.Username
-                    };
-
-                    var userContext = new RequestContext(message, userSession);
-                    onMessage(userContext, message); //TODO this feels weird
+                    var userContext = new RequestContext(message, x.Username);
+                    await onMessage(userContext, message); 
+                    _channel.BasicAck(deliveryTag: args.DeliveryTag,
+                        multiple: false);
                 }
                 catch (Exception ex)
                 {
-                    // error handling
-                }
-                finally
-                {
-                    _channel.BasicAck(deliveryTag: args.DeliveryTag,
-                        multiple: false);
+                    Log.Error(ex, "Exception while processing RPC {procName}", procName);
+                    _channel.BasicNack(args.DeliveryTag, false, requeue:false); // TODO: should we requeue?
                 }
             };
 
@@ -95,7 +88,7 @@ namespace Adaptive.ReactiveTrader.Messaging
             var consumer = new EventingBasicConsumer(_channel);
             var consumerTag = _channel.BasicConsume(queue: procName,
                 autoAck: false, consumer: consumer);
-            consumer.Received += (sender, args) =>
+            consumer.Received += async (sender, args) =>
             {
                 var body = args.Body;
                 var requestProps = args.BasicProperties;
@@ -115,26 +108,18 @@ namespace Adaptive.ReactiveTrader.Messaging
                         Payload = Encoding.UTF8.GetBytes(payload)
                     };
 
-                    var userSession = new UserSession
-                    {
-                        Username = x.Username
-                    };
-
-                    var userContext = new RequestContext(message, userSession);
-                    var result = onMessage(userContext, message).Result; //TODO this definitely needs to be fixed. Probably with abstraction it will happen naturally
-                    reply = JsonConvert.SerializeObject(result);
+                    var userContext = new RequestContext(message, x.Username);
+                    var result = await onMessage(userContext, message);
+                    var responseBytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(result));
+                    _channel.BasicPublish(exchange: "", routingKey: requestProps.ReplyTo,
+                        basicProperties: replyProps, body: responseBytes);
+                    _channel.BasicAck(deliveryTag: args.DeliveryTag,
+                        multiple: false);
                 }
                 catch (Exception ex)
                 {
-                    // error handling
-                }
-                finally
-                {
-                    var responseBytes = Encoding.UTF8.GetBytes(reply);
-                    _channel.BasicPublish(exchange: "", routingKey: requestProps.ReplyTo,
-                            basicProperties: replyProps, body: responseBytes);
-                    _channel.BasicAck(deliveryTag: args.DeliveryTag,
-                        multiple: false);
+                    Log.Error(ex, "Exception while processing RPC {procName}", procName);
+                    _channel.BasicNack(args.DeliveryTag, false, requeue: false); // TODO: should we requeue?
                 }
             };
 
@@ -143,12 +128,12 @@ namespace Adaptive.ReactiveTrader.Messaging
 
         public IPrivateEndPoint<T> GetPrivateEndPoint<T>(string replyTo)
         {
-            return new RabbitPrivateEndpoint<T>(_channel, replyTo);
+            return new PrivateEndpoint<T>(_channel, replyTo);
         }
 
         public IEndPoint<T> GetPublicEndPoint<T>(string topic)
         {
-            return new RabbitEndPoint<T>(_channel, topic);
+            return new EndPoint<T>(_channel, topic);
         }
 
         public IObservable<T> SubscribeToTopic<T>(string topic)

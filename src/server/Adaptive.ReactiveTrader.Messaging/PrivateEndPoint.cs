@@ -9,23 +9,13 @@ using Serilog;
 
 namespace Adaptive.ReactiveTrader.Messaging
 {
-    internal class PrivateEndPoint<T> : EndPoint<T>, IPrivateEndPoint<T>
-    {
-        public PrivateEndPoint(ISubject<T> subject, IObservable<Unit> breaker) : base(subject)
-        {
-            TerminationSignal = breaker;
-        }
-
-        public IObservable<Unit> TerminationSignal { get; }
-    }
-
-    internal class RabbitPrivateEndpoint<T> : IPrivateEndPoint<T>
+    internal class PrivateEndpoint<T> : IPrivateEndPoint<T>
     {
         private readonly IModel _channel;
         private readonly string _topic;
         private readonly Subject<Unit> _subject;
 
-        public RabbitPrivateEndpoint(IModel channel, string topic) 
+        public PrivateEndpoint(IModel channel, string topic) 
         {
             _channel = channel;
             _topic = topic;

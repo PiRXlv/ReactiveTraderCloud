@@ -28,7 +28,7 @@ namespace Adaptive.ReactiveTrader.Server.Blotter
 
         private async Task GetTradesStream(IRequestContext context, IMessage message)
         {
-            Log.Debug("Received GetTradesStream from {username}", context.UserSession.Username ?? "<UNKNOWN USER>");
+            Log.Debug("Received GetTradesStream from {username}", context.Username ?? "<UNKNOWN USER>");
             var replyTo = message.ReplyTo;
 
             var endPoint = _broker.GetPrivateEndPoint<TradesDto>(replyTo);

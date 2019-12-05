@@ -89,12 +89,7 @@ namespace Adaptive.ReactiveTrader.Messaging.WAMP
                                     .ToString()) // TODO need to stop this from deserializing
                         };
 
-                        var userSession = new UserSession
-                        {
-                            Username = x.Username
-                        };
-
-                        var userContext = new RequestContext(message, userSession);
+                        var userContext = new RequestContext(message, x.Username);
 
                         var response = await serviceMethod(userContext, message);
 

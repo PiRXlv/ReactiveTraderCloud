@@ -38,7 +38,7 @@ namespace Adaptive.ReactiveTrader.Server.Pricing
         {
             Log.Debug("{host} Received GetPriceUpdates from [{user}] for replyTo {replyTo}",
                             this,
-                            context.UserSession.Username ?? "Unknown User",
+                            context.Username ?? "Unknown User",
                             message.ReplyTo);
 
             var spotStreamRequest = JsonConvert.DeserializeObject<GetSpotStreamRequestDto>(Encoding.UTF8.GetString(message.Payload));

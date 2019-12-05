@@ -1,5 +1,4 @@
 using System;
-using System.Reactive.Subjects;
 using System.Text;
 using Newtonsoft.Json;
 using RabbitMQ.Client;
@@ -9,38 +8,11 @@ namespace Adaptive.ReactiveTrader.Messaging
 {
     internal class EndPoint<T> : IEndPoint<T>
     {
-        private readonly ISubject<T> _subject;
-
-        public EndPoint(ISubject<T> subject)
-        {
-            _subject = subject;
-        }
-
-        public void PushMessage(T obj)
-        {
-            try
-            {
-                _subject.OnNext(obj);
-            }
-            catch (Exception e)
-            {
-                Log.Error("Could not send message {message}", e.Message);
-            }
-        }
-
-        public void PushError(Exception ex)
-        {
-            _subject.OnError(ex);
-        }
-    }
-
-    internal class RabbitEndPoint<T> : IEndPoint<T>
-    {
         private readonly IModel _channel;
         private readonly string _topic;
 
 
-        public RabbitEndPoint(IModel channel, string topic)
+        public EndPoint(IModel channel, string topic)
         {
             _channel = channel;
             _topic = topic;
